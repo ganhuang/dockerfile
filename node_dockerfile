@@ -1,0 +1,42 @@
+FROM alpine:latest
+
+ENV LANG C.UTF-8
+
+# Install jdk8
+RUN { \
+		echo '#!/bin/sh'; \
+		echo 'set -e'; \
+		echo; \
+		echo 'dirname "$(dirname "$(readlink -f "$(which javac || which java)")")"'; \
+	} > /usr/local/bin/docker-java-home \
+	&& chmod +x /usr/local/bin/docker-java-home
+ENV JAVA_HOME /usr/lib/jvm/java-1.8-openjdk
+ENV PATH $PATH:/usr/lib/jvm/java-1.8-openjdk/jre/bin:/usr/lib/jvm/java-1.8-openjdk/bin
+
+ENV JAVA_VERSION 8u151
+ENV JAVA_ALPINE_VERSION 8.151.12-r0
+
+RUN set -x \
+        && apk add --no-cache --no-progress --virtual .build-deps build-base curl \
+	&& apk add --no-cache \
+		openjdk8="$JAVA_ALPINE_VERSION" \
+	&& [ "$JAVA_HOME" = "$(docker-java-home)" ]
+
+
+# Install aria2
+ENV \
+    ARIA2_VERSION=latest
+
+RUN set -ex \
+\
+    # Install packages
+\
+    && apk add --no-cache --no-progress \
+           libstdc++ \
+\
+    && export $(curl --location "https://github.com/timonier/version-lister/raw/generated/aria2/aria2/${ARIA2_VERSION}" | xargs) \
+    && curl --location "https://github.com/aria2/aria2/releases/download/release-${ARIA2_VERSION}/aria2-${ARIA2_VERSION}.tar.gz" | tar --directory /tmp --extract --gzip \
+    && sh -c "cd '/tmp/aria2-${ARIA2_VERSION}' && ./configure --localstatedir=/var --prefix=/usr --sysconfdir=/etc --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt" \
+    && make --directory "/tmp/aria2-${ARIA2_VERSION}" \
+    && make --directory "/tmp/aria2-${ARIA2_VERSION}" install \
+
