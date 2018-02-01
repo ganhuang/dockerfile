@@ -24,19 +24,7 @@ RUN set -x \
 
 
 # Install aria2
-ENV \
-    ARIA2_VERSION=latest
 
-RUN set -ex \
-\
-    # Install packages
-\
-    && apk add --no-cache --no-progress \
-           libstdc++ \
-\
-    && export $(curl --location "https://github.com/timonier/version-lister/raw/generated/aria2/aria2/${ARIA2_VERSION}" | xargs) \
-    && curl --location "https://github.com/aria2/aria2/releases/download/release-${ARIA2_VERSION}/aria2-${ARIA2_VERSION}.tar.gz" | tar --directory /tmp --extract --gzip \
-    && sh -c "cd '/tmp/aria2-${ARIA2_VERSION}' && ./configure --localstatedir=/var --prefix=/usr --sysconfdir=/etc --with-ca-bundle=/etc/ssl/certs/ca-certificates.crt" \
-    && make --directory "/tmp/aria2-${ARIA2_VERSION}" \
-    && make --directory "/tmp/aria2-${ARIA2_VERSION}" install \
+RUN set -x \
+    && apk add --no-cache aria2
 
